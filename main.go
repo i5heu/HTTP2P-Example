@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"gosocial"
 	"http2p"
 	"net/http"
 	"time"
@@ -48,16 +49,22 @@ func main() {
 	defer db.Close()
 
 	http2p.Init(db)
+	gosocial.Init(db)
 
 	// #################### END CREATE DATABASE #####################
 
 	fmt.Println("START")
 
 	http.HandleFunc("/swarm", SwarmHandler)
+	http.HandleFunc("/gosocial", GoSocial)
 	http.ListenAndServe(":8084", nil)
 
 }
 
 func SwarmHandler(w http.ResponseWriter, r *http.Request) {
 	http2p.APiHandler(w, r)
+}
+
+func GoSocial(w http.ResponseWriter, r *http.Request) {
+	gosocial.ApiHandler(w, r)
 }
