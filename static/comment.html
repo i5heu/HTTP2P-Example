@@ -8,8 +8,7 @@
 
   <script>
   function GoSocialAjaxSend(data){
-
-      $("#LoadingIndicator").show();
+        $("#LoadingIndicator").show();
 
       var xhr = new XMLHttpRequest();
       var url = "/gosocial";
@@ -31,17 +30,45 @@
     }
 
 
+function GetComments(){
+  $("#LoadingIndicator").show();
+
+var data = JSON.stringify({ "APP":"GetComments","Slug":window.location.pathname});
+
+  var xhr = new XMLHttpRequest();
+  var url = "/gosocial";
+  xhr.open("POST", url, true);
+  xhr.setRequestHeader("Content-type", "application/json");
+  xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+          var json = JSON.parse(xhr.responseText)
+          $(json.Comments).each(function(index, item) {
+            $('#GoSocial_Comments').append(item.Title,"<br>")
+          })
+          return true
+          }
+    };
+
+      console.log(data);
+
+      xhr.send(data);
+}
+
 $( document ).ready(function() {
 
+  GetComments();
+
   $('#GoSocial_SubmitForm').on( 'click', '#GoSocial_SubmitForm_Send', function () {
+      var data = JSON.stringify({ "APP":"WriteComment","Title":$("#GoSocial_SubmitForm_Title").val(),"Name":$("#GoSocial_SubmitForm_Name").val(),"Text":$("#GoSocial_SubmitForm_Text").val(),"Slug":window.location.pathname});
 
-    var data = JSON.stringify({ "APP":"WriteComment","Title":$("#GoSocial_SubmitForm_Title").val(),"Name":$("#GoSocial_SubmitForm_Name").val(),"Text":$("#GoSocial_SubmitForm_Text").val(),"Slug":window.location.pathname});
-
-    $.when(GoSocialAjaxSend(data)).done(function() {
-      $('#GoSocial_SubmitForm_Send').html("OK");
+      $.when(GoSocialAjaxSend(data)).done(function() {
+        $('#GoSocial_SubmitForm_Send').html("OK");
+      });
     });
 
-    });
+
+
+
 }); // DO NOT REMOVE DOC RDY
   </script>
   <style>
