@@ -66,5 +66,5 @@ func SwarmHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GoSocial(w http.ResponseWriter, r *http.Request) {
-	gosocial.ApiHandler(w, r)
+	gosocial.ApiHandler(w, r, "asd")
 }
