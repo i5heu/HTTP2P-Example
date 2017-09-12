@@ -7,16 +7,66 @@
  crossorigin="anonymous"></script>
 
   <script>
+  function GoSocialAjaxSend(data){
 
+      $("#LoadingIndicator").show();
+
+      var xhr = new XMLHttpRequest();
+      var url = "/gosocial";
+      xhr.open("POST", url, true);
+      xhr.setRequestHeader("Content-type", "application/json");
+      xhr.onreadystatechange = function () {
+          if (xhr.readyState === 4 && xhr.status === 200) {
+              var json = JSON.parse(xhr.responseText);
+              $("#LoadingIndicator").hide();
+              console.log(json.Status);
+              return true
+              }
+        };
+
+          console.log(data);
+
+          xhr.send(data);
+
+    }
+
+
+$( document ).ready(function() {
+
+  $('#GoSocial_SubmitForm').on( 'click', '#GoSocial_SubmitForm_Send', function () {
+
+    var data = JSON.stringify({ "APP":"WriteComment","Title":$("#GoSocial_SubmitForm_Title").val(),"Name":$("#GoSocial_SubmitForm_Name").val(),"Text":$("#GoSocial_SubmitForm_Text").val(),"Slug":window.location.pathname});
+
+    $.when(GoSocialAjaxSend(data)).done(function() {
+      $('#GoSocial_SubmitForm_Send').html("OK");
+    });
+
+    });
+}); // DO NOT REMOVE DOC RDY
   </script>
+  <style>
+  #GoSocial_SubmitForm input {
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  #GoSocial_SubmitForm textarea {
+    display: block;
+    margin-bottom: 5px;
+  }
+  </style>
 </head>
 <body>
 <h1>Das ist ein Test</h1>
 <div id="GoSocial_CommentConateiner">
   <div id="GoSocial_SubmitForm">
-    <input id="GoSocial_SubmitForm_Name">Name</intput>
-    <input id="GoSocial_SubmitForm_Title">Title</intput>
+    Name
+    <input id="GoSocial_SubmitForm_Name"></intput>
+    Title
+    <input id="GoSocial_SubmitForm_Title"></intput>
+    Comment
     <textarea id="GoSocial_SubmitForm_Text"></textarea>
+    <button id="GoSocial_SubmitForm_Send">SEND</button>
   </div>
   <div id="GoSocial_Comments"></div>
 </div>
