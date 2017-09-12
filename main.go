@@ -21,6 +21,8 @@ type Config struct {
 
 var conf Config
 
+var fs = http.FileServer(http.Dir("static"))
+
 func main() {
 
 	if _, err := toml.DecodeFile("config.toml", &conf); err != nil {
@@ -57,6 +59,7 @@ func main() {
 
 	http.HandleFunc("/swarm", SwarmHandler)
 	http.HandleFunc("/gosocial", GoSocial)
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
 	http.ListenAndServe(":8084", nil)
 
 }
