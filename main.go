@@ -1,7 +1,9 @@
 package main
 
 import (
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"fmt"
 	"gosocial"
 	"http2p"
@@ -16,7 +18,9 @@ var db *sql.DB
 var err error
 
 type Config struct {
-	Dblogin string
+	Dblogin   string
+	AdminPWD  string
+	AdminHASH string
 }
 
 var conf Config
@@ -29,6 +33,9 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+
+	var foo = sha256.Sum256([]byte(conf.AdminPWD)) //sha256 Parser for Password Token
+	conf.AdminHASH = hex.EncodeToString(foo[:])
 
 	// ################ END CONFIG ###########################
 
@@ -69,5 +76,5 @@ func SwarmHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GoSocial(w http.ResponseWriter, r *http.Request) {
-	gosocial.ApiHandler(w, r, "1234")
+	gosocial.ApiHandler(w, r, conf.AdminHASH)
 }

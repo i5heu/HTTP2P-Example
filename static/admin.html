@@ -1,0 +1,194 @@
+<html>
+<head>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"
+   integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=
+   sha384-xBuQ/xzmlsLoJpyjoggmTEz8OWUFM0/RC5BsqQBDX2v5cMvDHcMakNTNrHIW2I5f
+   sha512-3P8rXCuGJdNZOnUx/03c1jOTnMn3rP63nBip5gOP2qmUh5YAdVAvFZ1E+QLZZbC1rtMrQb+mah3AfYW11RUrWA=="
+   crossorigin="anonymous"></script>
+
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js" integrity="sha256-1A78rJEdiWTzco6qdn3igTBv9VupN3Q1ozZNTR4WE/Y=" crossorigin="anonymous"></script>
+
+
+
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js" integrity="sha256-u6BamZiW5tCemje2nrteKC2KoLIKX9lKPSpvCkOhamw=" crossorigin="anonymous"></script>
+
+  <script>
+  function GoSocialAjaxSend(data){
+        $("#LoadingIndicator").show();
+
+      var xhr = new XMLHttpRequest();
+      var url = "/gosocial";
+      xhr.open("POST", url, true);
+      xhr.setRequestHeader("Content-type", "application/json");
+      xhr.onreadystatechange = function () {
+          if (xhr.readyState === 4 && xhr.status === 200) {
+              var json = JSON.parse(xhr.responseText);
+              $("#LoadingIndicator").hide();
+              console.log(json.Status);
+              return true
+              }
+        };
+
+          console.log(data);
+          xhr.send(data);
+    }
+
+
+function GetComments(){
+  $("#LoadingIndicator").show();
+
+var data = JSON.stringify({ "APP":"GetComments","PWD":$.cookie('pwd')});
+  var xhr = new XMLHttpRequest();
+  var url = "/gosocial";
+  xhr.open("POST", url, true);
+  xhr.setRequestHeader("Content-type", "application/json");
+  xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+          var json = JSON.parse(xhr.responseText)
+          $('#GoSocial_Comments').html("")
+          $(json.Comments).each(function(index, item) {
+            var foo ="<div class='GoSocial_Comment' id=GoSocial_GetCommentID_'" + item.Id + "' data-gosocialid='"+item.Id+"'>"
+            //foo += "<div class='GoSocial_Votes'><span class='GoSocial_Upvotes'>"+ item.Upvotes +"</span>↑-↓<span class='GoSocial_Downvotes'>" + item.Downvotes+ "</span></div>"
+            //THE VOTING IS UNDER DEV
+            foo += "<div class='GoSocial_Moderate'><button class='GoSocial_Moderate' data-gosocialid='"+item.Id+"' data-gosocialmoderate='1'>APROVE</button>   <button class='GoSocial_Moderate' data-gosocialid='"+item.Id+"' data-gosocialmoderate='2'>DELETE</button></div>"
+            foo += "<div class='GoSocial_Slug'>"+ item.Slug +"</div>"
+            foo += "<div class='GoSocial_Title'>"+ item.Title +"</div>"
+            foo += "<div class='GoSocial_Name'>by "+ item.Name +"</div>"
+            foo += "<div class='GoSocial_Text'>"+ item.Text +"</div>"
+            foo += "</div>"
+            $('#GoSocial_Comments').append(foo)
+          })
+          return true
+          }
+    };
+
+      console.log(data);
+
+      xhr.send(data);
+}
+
+function PWSave(){
+  var foo = $('#pw').val();
+  pwdhash = CryptoJS.SHA256(foo).toString(CryptoJS.enc.Hex);
+
+  expireAt = new Date;
+  expireAt.setMonth(expireAt.getMonth() + 1);
+  document.cookie = "pwd=" + pwdhash + ";expires=" + expireAt.toGMTString() + ";path=/"
+}
+
+function PwdInput(){
+  $("#ApiContainer").html(`<input type="password" id="pw">PW</input><button id="PwSend">Send</button>`);
+}
+
+$( document ).ready(function() {
+
+
+  if (!!$.cookie('pwd')) {
+   // have cookie
+   console.log("LOGED IN");
+   GetComments();
+
+   $('#GoSocial_SubmitForm').on( 'click', '#GoSocial_SubmitForm_Send', function () {
+       var data = JSON.stringify({ "APP":"WriteComment","Title":$("#GoSocial_SubmitForm_Title").val(),"Name":$("#GoSocial_SubmitForm_Name").val(),"Text":$("#GoSocial_SubmitForm_Text").val(),"Slug":window.location.pathname});
+
+       $.when(GoSocialAjaxSend(data)).done(function() {
+         $('#GoSocial_SubmitForm_Send').html("OK");
+       });
+     });
+  } else {
+   // no cookie
+   console.log("NOT LOGED IN");
+   PwdInput();
+  }
+
+  $('#ApiContainer').on( 'click', '#PwSend', function () {
+    console.log("PwdSend");
+    PWSave();
+    location.reload();
+  });
+
+
+  $(document).on('click', '.GoSocial_Moderate', function(){
+    console.log("BEGIN MODERATE");
+      var foo = $(this).data("gosocialid")
+      var bar = $(this).data("gosocialmoderate")
+
+      if(foo == undefined){
+        return
+      }
+      console.log("SEND MODERATION INSTRUTION FOR COMMENTID >", foo);
+      var data = JSON.stringify({"APP":"ModerateComment","PWD":$.cookie('pwd'),"ID": foo,"ModerateNum": bar });
+
+      $.when(GoSocialAjaxSend(data)).done(function() {
+          $('#GoSocial_SubmitForm_Send').html("OK");
+          setTimeout(
+          function()
+          {
+            GetComments();
+          }, 200);
+      });
+
+    });
+
+  $( "#GoSocial_Reload" ).click(function(){
+      GetComments();
+  });
+
+
+
+}); // DO NOT REMOVE DOC RDY
+  </script>
+  <style>
+  #GoSocial_SubmitForm input {
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  #GoSocial_SubmitForm textarea {
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  .GoSocial_Comment{
+    margin:5px;
+    padding-left: 5px;
+    margin-bottom: 15px;
+    border-left:  1px solid black;
+  }
+  .GoSocial_Title{
+    font-size: 130%;
+    font-family: monospace;
+    background: #eee;
+  }
+
+  .GoSocial_Name{
+    font-size: 80%;
+    font-family: monospace;
+    background: #484848;
+    color:#fff;
+  }
+
+  .GoSocial_Text{
+    margin-top: 10px;
+
+  }
+  </style>
+</head>
+<body>
+<h1>Comment Admin</h1>
+<div id="ApiContainer"></div>
+<div id="GoSocial_CommentConateiner">
+  <div id="GoSocial_SubmitForm">
+    Name
+    <input id="GoSocial_SubmitForm_Name"></intput>
+    Title
+    <input id="GoSocial_SubmitForm_Title"></intput>
+    Comment
+    <textarea id="GoSocial_SubmitForm_Text"></textarea>
+    <button id="GoSocial_SubmitForm_Send">SEND</button>
+  </div>
+  <button id="GoSocial_Reload">RELOAD</div>
+  <div id="GoSocial_Comments"></div>
+</div>
+</body>
+</html>
